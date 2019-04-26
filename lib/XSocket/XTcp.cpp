@@ -10,6 +10,9 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/select.h>
 #define		closesocket close
 #define		strcpy_s	strcpy
 #endif
@@ -32,7 +35,43 @@ XTcp::XTcp()
 #endif
 	Sockfd = 0;
 }
+//设置阻塞或非阻塞模式
+bool XTcp::Socket_SetBlock(bool IsBlock)
+{
+	if (Sockfd <= 0)
+	{
+		printf("Please create socket！");
+		return false;
+	}
 
+#ifdef WIN32
+	unsigned long u1 = 0;
+	if (!IsBlock)
+	{
+		u1 = 1;
+	}
+	ioctlsocket(Sockfd,FIONBIO,&u1);
+#else
+	int flags = fcntl(Sockfd, F_GETFL,0);
+	if (flags < 0)
+	{
+		return false;
+	}
+	if (IsBlock)
+	{
+		flags &= ~O_NONBLOCK;
+	}
+	else
+	{
+		flags |= O_NONBLOCK;
+	}
+	if (fcntl(Sockfd, F_SETFL, flags) != 0)
+	{
+		return false;
+	}
+	return true;
+#endif
+}
 int XTcp::Socket_Create(void)
 {
 	//2.创建socket
@@ -41,25 +80,39 @@ int XTcp::Socket_Create(void)
 	{
 		printf("Create socket failed!");
 	}
-	printf("Socket[%d]\n", Sockfd);
+	printf("Create Socket[%d]\n", Sockfd);
 	return Sockfd;
 }
-bool XTcp::Socket_Connect(const char *pIP, unsigned short port)
+bool XTcp::Socket_Connect(const char *pIP, unsigned short port,int timeout)
 {
 	if (Sockfd <= 0)
 	{
 		Socket_Create();
 	}
 	sockaddr_in saddr;
+	fd_set fdSet;
 	saddr.sin_family = AF_INET;
 	saddr.sin_port = htons(port);
 	saddr.sin_addr.s_addr = inet_addr(pIP);
-	if (connect(Sockfd, (sockaddr*)&saddr, sizeof(saddr)) !=0)
+	Socket_SetBlock(false);//设置为非阻塞模式
+	if (connect(Sockfd, (sockaddr*)&saddr, sizeof(saddr)) < 0)
 	{
-		printf("Connect %s:%d failed!Err\n",pIP,port);
-		return false;
+		//使用select设置超时
+		FD_ZERO(&fdSet);//初始化描述符集
+		FD_SET(Sockfd, &fdSet);//添加指定描述符到描述符集
+		timeval tm;//设置超时时间
+		tm.tv_sec = 0;
+		tm.tv_usec = timeout * 1000;
+		if (select(Sockfd + 1, 0, &fdSet, 0, &tm) < 0)
+		{
+			printf("connect %s:%d timeout or failed!:%s\n", pIP, port, strerror(errno));
+			Socket_SetBlock(true);//恢复为阻塞模式
+			return false;
+		}
+		printf("Select Success\n");
 	}
-	printf("Connect %s:%d Success！\n", pIP, port);
+	Socket_SetBlock(true);//恢复为阻塞模式
+	printf("Connect %s:%d Success\n", pIP, port);
 	return true;
 }
 int XTcp::Socket_Bind(unsigned short SocketPort)

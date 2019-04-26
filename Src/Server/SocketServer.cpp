@@ -15,6 +15,7 @@ public:
 		int RecvLen = 0, SendLen = 0;
 		char RecvBuf[1024] = { 0 };
 		//6.接收客户端数据
+		printf("Client[%d]\n", Client.SockPort);
 		for (;;)
 		{
 			RecvLen = Client.Socket_Recv(RecvBuf, sizeof(RecvBuf) - 1);

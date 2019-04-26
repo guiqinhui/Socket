@@ -16,7 +16,7 @@ public:
 	char SockIP[16];
 
 	int Socket_Create(void);
-	bool Socket_Connect(const char *pIP,unsigned char port);
+	bool Socket_Connect(const char *pIP,unsigned short port);
 	int Socket_Bind(unsigned short SocketPort);
 	XTcp Socket_Accetpt(void);
 	int Socket_Send(const char *pBuf,int BufLen);

@@ -10,7 +10,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <arpa/inet.h>
-#define  closesocket close
+#define		closesocket close
+#define		strcpy_s	strcpy
 #endif
 using namespace std;
 
@@ -29,20 +30,21 @@ XTcp::XTcp()
 		printf("WSAStartup failed with error %d\n", Ret);
 	}
 #endif
+	Sockfd = 0;
 }
 
 int XTcp::Socket_Create(void)
 {
 	//2.´´½¨socket
 	Sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (Sockfd < 0)
+	if (Sockfd <= 0)
 	{
 		printf("Create socket failed!");
 	}
 	printf("Socket[%d]\n", Sockfd);
 	return Sockfd;
 }
-bool XTcp::Socket_Connect(const char *pIP, unsigned char port)
+bool XTcp::Socket_Connect(const char *pIP, unsigned short port)
 {
 	if (Sockfd <= 0)
 	{
@@ -57,6 +59,7 @@ bool XTcp::Socket_Connect(const char *pIP, unsigned char port)
 		printf("Connect %s:%d failed!Err\n",pIP,port);
 		return false;
 	}
+	printf("Connect %s:%d Success£¡\n", pIP, port);
 	return true;
 }
 int XTcp::Socket_Bind(unsigned short SocketPort)

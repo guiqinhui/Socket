@@ -1,2 +1,2 @@
 TCPServer:SocketServer.cpp
-	g++ $+ -o $@ -std=c++11 -I../ -lpthread -lxsocket
+	g++ $+ -o $@ -std=c++11 -I../../lib/XSocket/ -lpthread -lxsocket

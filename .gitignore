@@ -1,0 +1,46 @@
+
+Project/libxsocket/Debug/*
+Project/libxsocket/libxsocket/Debug/*
+Project/SocketClient/Debug/*
+Project/SocketClient/SocketClient/Debug/*
+Project/SocketServer/Debug/*
+Project/SocketServer/SocketServer/Debug/*
+
+
+
+*.opensdf
+*.sdf
+iKutil.log
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.log
+*.ilk
+*.suo
+iUpdateAuto.exe
+*.tlog
+*.lastbuild
+*.ipch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+
+
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.sbr
+*.idb
+*.obj
+*.pdb
+*.ncb
+*.pch
+*.bsc
+*.user
+*.dep
+*.map

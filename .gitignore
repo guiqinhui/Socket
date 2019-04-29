@@ -1,4 +1,5 @@
-
+Project/HttpServer/Debug/*
+Project/HttpServer/HttpServer/Debug/*
 Project/libxsocket/Debug/*
 Project/libxsocket/libxsocket/Debug/*
 Project/SocketClient/Debug/*

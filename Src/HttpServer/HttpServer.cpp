@@ -4,6 +4,8 @@
 #include <thread>
 #include "XTcp.h"
 #include <regex>
+
+
 #define	EPOLL_CTL	1
 #define DEFAULT_HTTP_HTML	"/index.html"
 #define DEFAULT_FILE_PATH	"www"
@@ -55,7 +57,9 @@ public:
 
 		//使用正则表达式解析GET数据
 		string src = RecvBuf;
-		string pattern = "^([A-Z]+) (.+) HTTP/1";
+		//使用正则表达式加载动态页面请求，例如php
+		//URL的路径可以是 /   /index.html /index.php 等等
+		string pattern = "^([A-Z]+) /([a-zA-Z0-9]*([.][a-zA-Z]*)?)[?]?(.*) HTTP/1";
 		regex reg(pattern);
 		smatch mas;
 		regex_search(src, mas, reg);
@@ -66,10 +70,21 @@ public:
 			return;
 		}
 		string CmdType = mas[1];
-		string FilePath = mas[2];
+		string FilePath = "/";
+		FilePath += mas[2];
+		string FileType = mas[3];
+		string Query = mas[4];
 		string FileName = FilePath;
+		if (FileType.size() > 0)
+			FileType = FileType.substr(1, FileType.size() - 1);//去除文件后缀名的.
+		printf("CmdType:[%s]\nFilePath:[%s]\nFileType:[%s]\nQuery:[%s]\n", 
+			CmdType.c_str(), 
+			FilePath.c_str(), 
+			FileType.c_str(), 
+			Query.c_str());
 		if (CmdType != "GET")
 		{
+			printf("Not GET\n");
 			Close();
 			return;
 		}
@@ -79,6 +94,25 @@ public:
 		}
 		FilePath = DEFAULT_FILE_PATH;
 		FilePath += FileName;
+		if (FileType == "php")
+		{
+			string ShellCmd = "php-cgi ";
+			ShellCmd += FilePath;
+			ShellCmd += " ";
+			for (int i = 0; i < Query.size(); i++)
+			{
+				if (Query[i] == '&')
+				{
+					Query[i] = ' ';
+				}
+			}
+			ShellCmd += Query;
+			ShellCmd += " > ";//文件输出重定向
+			FilePath += ".html";
+			ShellCmd += FilePath;
+			printf("%s\n", ShellCmd.c_str());
+			system(ShellCmd.c_str());//执行shell命令
+		}
 		//打开对应页面请求的文件
 		FILE *pFile = fopen(FilePath.c_str(),"rb");//以二进制只读方式读取文件
 		if (pFile == NULL)
